@@ -33,19 +33,37 @@ const __dirname = path.dirname(__filename);
 const PORT = process.env.PORT || 3000;
 
 /* CORS */
-const allowedOrigins = [
+const allowedOrigins = new Set([
   "https://pdfcostaazul.netlify.app",
   "http://localhost:5173",
-  "http://127.0.0.1:5500",
+  "http://127.0.0.1:5173",
   "http://localhost:5500",
-  "http://127.0.0.1:5173"
-];
+  "http://127.0.0.1:5500"
+]);
+
+function isAllowedOrigin(origin) {
+  if (!origin) return true;
+  if (allowedOrigins.has(origin)) return true;
+
+  try {
+    const url = new URL(origin);
+    const hostname = url.hostname.toLowerCase();
+
+    // Permite cualquier deploy de Netlify
+    if (hostname.endsWith(".netlify.app")) return true;
+
+    return false;
+  } catch {
+    return false;
+  }
+}
 
 app.use(
   cors({
     origin(origin, callback) {
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) return callback(null, true);
+      if (isAllowedOrigin(origin)) {
+        return callback(null, true);
+      }
       return callback(new Error(`Origen no permitido por CORS: ${origin}`));
     },
     credentials: true
@@ -53,8 +71,8 @@ app.use(
 );
 
 /* MIDDLEWARES */
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 /* STATIC */
 app.use("/assets", express.static(path.join(__dirname, "assets")));
