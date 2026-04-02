@@ -788,10 +788,11 @@ function normalizeMetadata(metadata) {
 
 function formatDateForPdf(value) {
   if (!value) return "-";
-  const raw = String(value);
-  if (raw.includes("T")) return raw.split("T")[0];
-  if (raw.includes(" ")) return raw.split(" ")[0];
-  return raw;
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "-";
+
+  return date.toLocaleDateString("es-AR");
 }
 
 function capitalize(value) {
