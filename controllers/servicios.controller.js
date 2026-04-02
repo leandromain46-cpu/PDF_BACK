@@ -8,13 +8,9 @@ GET SERVICIOS POR COTIZACION
 ========================================= */
 export const getServiciosByCotizacion = async (req, res) => {
   try {
-    const userId = req.user.id;
     const { cotizacionId } = req.params;
 
-    const servicios = await ServModel.getServiciosByCotizacion(
-      cotizacionId,
-      userId
-    );
+    const servicios = await ServModel.getServiciosByCotizacion(cotizacionId);
 
     const full = await Promise.all(
       servicios.map(async s => {
@@ -24,7 +20,6 @@ export const getServiciosByCotizacion = async (req, res) => {
     );
 
     res.json(full);
-
   } catch (err) {
     console.error("GET SERVICIOS ERROR:", err);
     res.status(500).json({ error: err.message });
@@ -48,7 +43,6 @@ export const getServicioById = async (req, res) => {
     servicio.metadata = await MetaModel.getServicioMetadata(servicio.id);
 
     res.json(servicio);
-
   } catch (err) {
     console.error("GET SERVICIO ERROR:", err);
     res.status(500).json({ error: err.message });
@@ -84,12 +78,10 @@ export const createServicio = async (req, res) => {
     await conn.commit();
 
     res.status(201).json({ id: servicioId });
-
   } catch (err) {
     await conn.rollback();
     console.error("CREATE SERVICIO ERROR:", err);
     res.status(400).json({ error: err.message });
-
   } finally {
     conn.release();
   }
@@ -116,27 +108,19 @@ export const updateServicio = async (req, res) => {
       return res.status(404).json({ error: "Servicio no existe" });
     }
 
-    // 🔥 FIX: usar req.body
     await ServModel.updateServicio(conn, id, req.body, userId);
 
-    // 🔥 NUEVO: actualizar metadata
     if (req.body.metadata) {
-      await MetaModel.saveServicioMetadata(
-        conn,
-        id,
-        req.body.metadata
-      );
+      await MetaModel.saveServicioMetadata(conn, id, req.body.metadata);
     }
 
     await conn.commit();
 
     res.json({ ok: true });
-
   } catch (err) {
     await conn.rollback();
     console.error("UPDATE SERVICIO ERROR:", err);
     res.status(400).json({ error: err.message });
-
   } finally {
     conn.release();
   }
@@ -166,12 +150,10 @@ export const deleteServicio = async (req, res) => {
     await conn.commit();
 
     res.json({ ok: true });
-
   } catch (err) {
     await conn.rollback();
     console.error("DELETE SERVICIO ERROR:", err);
     res.status(500).json({ error: err.message });
-
   } finally {
     conn.release();
   }
